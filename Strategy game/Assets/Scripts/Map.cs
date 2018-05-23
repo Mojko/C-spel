@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 
 public class Map : MonoBehaviour {
 
+	public Game game;
 	public UnitManager unitManager;
 	private Territory[] territories;
 	private Astar pathFinder;
@@ -13,14 +14,10 @@ public class Map : MonoBehaviour {
 	private void Start () {
 		territories = new Territory[transform.childCount];
 		for(int i = 0; i < territories.Length; i++){
-			territories[i] = new Territory(Team.NEUTRAL, transform.GetChild(i).gameObject);
+			territories[i] = new Territory(Team.NEUTRAL, transform.GetChild(i).gameObject, game);
 		}
 
 		try {
-			getTerritory(10, 9).capture(Team.RED);
-			getTerritory(10, 8).capture(Team.RED);
-			getTerritory(10, 7).capture(Team.RED);
-			getTerritory(0, 0).capture(Team.BLUE);
 
 		} catch(NullReferenceException e){
 			Debug.LogError("Territory not found" + e.Message);
@@ -99,11 +96,24 @@ public class Map : MonoBehaviour {
 
 	public Territory getTerritory(int x, int z){
 		foreach(Territory t in territories){
-			if(t.find(x,z)){
+			if(t.find(x,0,z)){
 				return t;
 			}
 		}
 		return null;
+	}
+
+	public Territory getTerritory(int x, int y, int z){
+		foreach(Territory t in territories){
+			if(t.find(x,y,z)){
+				return t;
+			}
+		}
+		return null;
+	}
+
+	public Territory getTerritory(Vector3 pos){
+		return getTerritory((int)pos.x, (int)pos.z);
 	}
 
 	public void clear(){
@@ -124,7 +134,8 @@ public class Map : MonoBehaviour {
 	public void markTerritories(Territory[] territories){
 		if(territories != null){
 			foreach(Territory t in territories){
-				t.mark(Territory.MarkType.ATTACK);
+				if(t != null)
+					t.mark(Territory.MarkType.ATTACK);
 			}
 		}
 
@@ -135,5 +146,8 @@ public class Map : MonoBehaviour {
 		} else if(territories != null && selected.getPreparedAbility().getData().neutral){
 			territories[territories.Length-1].mark(Territory.MarkType.ATTACK);
 		}*/
+	}
+	public void markTerritory(Territory t){
+		t.mark(Territory.MarkType.ATTACK);
 	}
 }

@@ -16,9 +16,10 @@ public class GridMover : MonoBehaviour {
 		moved = false;
 		GameObject o = Mouse.getInstance().hoverObject();
 		if(o != null){
+			Debug.Log(o.tag);
 			if(o.CompareTag("Grid")){
 				if(pos != gridObject.transform.position){
-					gridObject.transform.position = new Vector3(o.transform.position.x, gridObject.transform.position.y, o.transform.position.z);
+					gridObject.transform.position = new Vector3(o.transform.position.x, o.transform.position.y+0.517f, o.transform.position.z);
 					moved = true;
 					Debug.Log("moved");
 				}

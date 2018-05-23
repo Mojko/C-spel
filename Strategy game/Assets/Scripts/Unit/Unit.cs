@@ -4,14 +4,16 @@ using UnityEngine;
 using UnityEngine.UI;
 
 //[CreateAssetMenu(fileName = "New Unit", menuName = "Unit")]
-public class Unit : MonoBehaviour {
+public class Unit : MonoBehaviour, IPlaceAble {
 	public Text damageText;
-	private Team team;
+	private Team team = Team.NEUTRAL;
 	public int damage;
 	public Ability[] abilities;
 	private Territory territory;
 	private Ability activeAbility;
 	private bool active = true;
+	private int moves = 2;
+	private int startMoves = 2;
 	private bool dead = false;
 
 	private Renderer[] renderers;
@@ -22,9 +24,6 @@ public class Unit : MonoBehaviour {
 			renderers[i] = transform.GetChild(i).GetComponent<Renderer>();
 		}
 		setAbilities();
-	}
-
-	void Update(){
 	}
 
 	public void place(Territory territory){
@@ -38,8 +37,9 @@ public class Unit : MonoBehaviour {
 	}
 
 	public void move(Territory territory){
-		this.territory.removeUnit(this);
-		territory.setUnit(this, team);
+		this.territory.removePlaceable();
+		//territory.setUnit(this, team);
+		territory.place(this);
 		this.territory = territory;
 		updatePosition();
 	}
@@ -76,10 +76,6 @@ public class Unit : MonoBehaviour {
 			activeAbility = null;
 	}
 
-	public void attack(Territory territory){
-
-	}
-
 	public void markNearbyTerritories(Map map){
 		Territory[] nearby = territory.getNearbyTerritories(map, activeAbility.getData().range);
 
@@ -89,14 +85,14 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
-	public void executeAbility(Territory territory){
+	/*public void executeAbility(Territory territory){
 		if(canAttack()){
 			attack(territory);
 		} else if(canMove()){
 			move(territory);
 		}
 		this.activeAbility = null;
-	}
+	}*/
 
 	public bool hasPreparedAbility(){
 		return this.activeAbility != null;
@@ -138,6 +134,12 @@ public class Unit : MonoBehaviour {
 		this.active = false;
 	}
 
+	public void useMove(){
+		this.moves--;
+		if(moves <= 0)
+			deactivate();
+	}
+
 	public void hurt(){
 		Text text = Instantiate(damageText);
 		text.gameObject.SetActive(true);
@@ -155,6 +157,7 @@ public class Unit : MonoBehaviour {
 
 	public void reset(){
 		this.active = true;
+		this.moves = startMoves;
 	}
 
 	public bool isAlive(){
@@ -163,5 +166,45 @@ public class Unit : MonoBehaviour {
 
 	public Team getTeam(){
 		return team;
+	}
+
+	public Animator getAnimator(){
+		return gameObject.GetComponent<Animator>();
+	}
+
+	public void rotate(Territory territory){
+		gameObject.transform.LookAt(new Vector3(territory.gameObject.transform.position.x, gameObject.transform.position.y, territory.gameObject.transform.position.z));//gameObject.transform.rotation = Quaternion.LookRotation();
+		snapRotation(90);
+	}
+
+	public void snapRotation(float degree){
+		Vector3 euler = transform.rotation.eulerAngles;
+		euler.x = Mathf.RoundToInt(euler.x/degree)*degree;
+		euler.y = Mathf.RoundToInt(euler.y/degree)*degree;
+		euler.z = Mathf.RoundToInt(euler.z/degree)*degree;
+		transform.rotation = Quaternion.Euler(euler);
+	}
+
+	public void basicAttack(Territory territory){
+		StartCoroutine(attack(territory));
+		Debug.Log("basic attacked");
+	}
+
+	public IEnumerator attack(Territory territory){
+		//if(territory.getUnit().gameObject == null) yield return null;
+		Vector3 oldPos = gameObject.transform.position;
+		Vector3 target = new Vector3(territory.gameObject.transform.position.x, gameObject.transform.position.y, territory.gameObject.transform.position.z);
+		while(Vector3.Distance(gameObject.transform.position, target) > 0.1f){
+			gameObject.transform.position = Vector3.Lerp(gameObject.transform.position, target, 0.8f);
+			//Debug.Log(gameObject.transform.position.x + ", " + gameObject.transform.position.z + " | " + target.x + ", " + target.z);
+			yield return null;
+		}
+		yield return new WaitForSeconds(0.1f);
+		while(Vector3.Distance(gameObject.transform.position, oldPos) >= 0.1f){
+			//Debug.Log(Vector3.Distance(gameObject.transform.position, oldPos));
+			gameObject.transform.position = Vector3.Lerp(gameObject.transform.position, oldPos, 0.8f);
+			yield return null;
+		}
+		gameObject.transform.position = oldPos;
 	}
 }

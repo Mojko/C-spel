@@ -5,12 +5,15 @@ using UnityEngine;
 public class UnitManager : MonoBehaviour{
 	public CharacterPage characterPage;
 	public Unit mage;
+	public Unit warrior;
 	private Unit selected;
 
 	void Start(){
 	}
 
 	public void selectUnit(Unit unit){
+		if(hasSelectedUnit())
+			selected.removeAbility();
 		this.selected = unit;
 		characterPage.open(unit);
 	}
@@ -25,10 +28,9 @@ public class UnitManager : MonoBehaviour{
 
 	public void unSelectUnit(){
 		if(selected != null){
-			if(selected.hasPreparedAbility()){
-				selected.removeAbility();
-			}
-			characterPage.close();
+			selected.removeAbility();
+			if(characterPage.isOpened())
+				characterPage.close();
 			Debug.Log("unselected " + selected);
 		}
 		this.selected = null;

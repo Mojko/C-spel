@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum AbilityType {
-	MOVE, FIREBALL
+	MOVE, FIREBALL, ATTACK
 }
 
 public class Ability : MonoBehaviour {
@@ -12,7 +12,7 @@ public class Ability : MonoBehaviour {
 	private int useTimer = 0;
 	private int territoryIndex = 0;
 	private Territory[] territories;
-	private Territory currentTerritory;
+	private Territory from;
 	private bool executed = false;
 	private int timer = 90;
 
@@ -27,30 +27,28 @@ public class Ability : MonoBehaviour {
 			Destroy(gameObject);
 		
 		if(executed && territoryIndex < territories.Length && Time.frameCount % 10 == 0){
-			execute(currentTerritory, territories[territoryIndex]);
+			execute(from, territories[territoryIndex]);
 			territoryIndex++;
+			Debug.Log(territoryIndex);
 		}
 	}
 
 	public void execute(Territory from, Territory[] territories){
-		from.getUnit().deactivate();
+		from.getUnit().useMove();
 		GameObject o = Instantiate(this.gameObject);
 		o.transform.position = new Vector3(territories[0].gameObject.transform.position.x, o.transform.position.y, territories[0].gameObject.transform.position.z);
 		Ability a = o.GetComponent<Ability>();
 		a.activate(from, territories);
-		Debug.Log("executed");
-	}
-
-	private void activate(Territory from, Territory[] territories){
-		this.territories = territories;
-		this.currentTerritory = from;
-		executed = true;
 	}
 
 	private void execute(Territory from, Territory territory){
 		AbilityHandler.getInstance().handleAbility(this, from, territory);
-		if(territory.getUnit() != null)
-			territory.getUnit().hurt();
+	}
+
+	private void activate(Territory from, Territory[] territories){
+		this.territories = territories;
+		this.from = from;
+		executed = true;
 	}
 
 	public bool hasExecuted(){

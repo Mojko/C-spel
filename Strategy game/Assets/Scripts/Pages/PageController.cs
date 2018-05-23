@@ -21,16 +21,19 @@ public class PageController : MonoBehaviour {
 		this.image = GetComponent<RawImage>();
 		this.rect = GetComponent<RectTransform>();
 		this.animator = GetComponent<Animator>();
-
-		if(state == UIState.CLOSED)
-			close();
-		else
-			open();
+		close();
 	}
 
 	void Update(){
+		int closedAmount = 0;
 		foreach(Page p in pages){
 			p.gameObject.SetActive(p.isOpened());
+			if(p.isClosed()){
+				closedAmount++;
+			}
+		}
+		if(closedAmount >= pages.Length){
+			close();
 		}
 	}
 
@@ -44,6 +47,10 @@ public class PageController : MonoBehaviour {
 		state = UIState.CLOSED;
 	}
 
+	public bool isOpened(){
+		return state == UIState.OPENED;
+	}
+
 	public void toggle(){
 		switch(state){
 		case UIState.OPENED:
@@ -52,6 +59,19 @@ public class PageController : MonoBehaviour {
 		case UIState.CLOSED:
 			open();
 			break;
+		}
+	}
+
+	public void closeAll(){
+		foreach(Page p in pages){
+			p.close();
+		}
+	}
+
+	public void closeAllExcept(Page page){
+		foreach(Page p in pages){
+			if(!p.Equals(page))
+				p.close();
 		}
 	}
 }

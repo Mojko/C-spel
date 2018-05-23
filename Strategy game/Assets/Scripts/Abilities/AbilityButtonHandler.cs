@@ -29,6 +29,6 @@ public class AbilityButtonHandler : MonoBehaviour {
 
 	public void onButtonPress(AbilityUIComponent abilityComponent){
 		characterPage.getUnit().toggleAbility(abilityComponent.getAbility());
-		Debug.Log("pressing " + abilityComponent.getAbility().name);
+		Debug.Log("pressing " + abilityComponent.getAbility().getData().name);
 	}
 }
